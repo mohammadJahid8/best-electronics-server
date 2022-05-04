@@ -12,7 +12,6 @@ app.use(express.json());
 
 
 
-
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.dxcla.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
 
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
@@ -21,7 +20,13 @@ const run = async () => {
 
     try {
         await client.connect();
+        console.log('connect');
         const itemsCollection = client.db("inventory").collection("items");
+
+        app.get('/', (req, res) => {
+            res.send('inside')
+            console.log('inside');
+        })
 
         //get all items from database
         app.get('/items', async (req, res) => {
@@ -37,7 +42,25 @@ const run = async () => {
             const query = { _id: ObjectId(id) };
             const item = await itemsCollection.findOne(query);
             res.send(item);
-        })
+        });
+
+        //update quantity of item
+        app.put('/items/:id', async (req, res) => {
+            const id = req.params.id;
+            const newItem = req.body;
+            const query = { _id: ObjectId(id) };
+            const options = { upsert: true };
+            const updatedDoc = {
+                $set: {
+                    quantity: newItem.quantity
+                }
+            };
+            const result = await itemsCollection.updateOne(query, updatedDoc, options);
+            res.send(result);
+        });
+
+        //     }
+        //     // finally {
 
     }
     catch (error) {
