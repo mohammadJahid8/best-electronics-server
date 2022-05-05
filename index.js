@@ -44,7 +44,7 @@ const run = async () => {
             res.send(item);
         });
 
-        //update quantity of item
+        //update quantity and restock item
         app.put('/items/:id', async (req, res) => {
             const id = req.params.id;
             const newItem = req.body;
@@ -59,8 +59,14 @@ const run = async () => {
             res.send(result);
         });
 
-        //     }
-        //     // finally {
+        //Delete a item
+        app.delete('/items/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const result = await itemsCollection.deleteOne(query);
+            res.send(result);
+        })
+
 
     }
     catch (error) {
