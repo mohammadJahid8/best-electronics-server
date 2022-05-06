@@ -3,7 +3,7 @@ const { MongoClient, ObjectId } = require('mongodb');
 const app = express();
 const port = process.env.PORT || 5000;
 const cors = require('cors');
-
+const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
 //middleware
@@ -23,12 +23,17 @@ const run = async () => {
         console.log('connect');
         const itemsCollection = client.db("inventory").collection("items");
 
-        app.get('/', (req, res) => {
-            res.send('inside')
-            console.log('inside');
-        })
+        app.post('/gettoken', async (req, res) => {
+            const user = req.body;
+            console.log(user)
+            const token = jwt.sign(user, process.env.ACCESS_TOKEN, {
+                expiresIn: '1d'
+            });
+            res.send(token);
+        });
 
-        //get all items from database
+
+        // get all items from database
         app.get('/items', async (req, res) => {
             const query = {};
             const cursor = itemsCollection.find(query);
@@ -73,6 +78,16 @@ const run = async () => {
             const result = await itemsCollection.insertOne(newItem);
             res.send(result);
         })
+
+        //get my item
+        app.get('/item', async (req, res) => {
+            const email = req.query.email;
+            const query = { email: email };
+            const cursor = itemsCollection.find(query);
+            const result = await cursor.toArray();
+            res.send(result)
+        });
+
 
 
     }
