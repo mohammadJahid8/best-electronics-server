@@ -121,7 +121,9 @@ const run = async () => {
 }
 run();
 
-
+app.get('/', (req, res) => {
+    res.send('welcome to the api');
+})
 
 app.listen(port, () => {
     console.log('server is running');
