@@ -43,8 +43,6 @@ const run = async () => {
 
         app.post('/gettoken', async (req, res) => {
             const user = req.body;
-            const email = user.email;
-            console.log(email);
             const token = jwt.sign(user, process.env.ACCESS_TOKEN, {
                 expiresIn: '15d'
             });
@@ -100,11 +98,17 @@ const run = async () => {
 
         //get my item
         app.get('/item', verifyToken, async (req, res) => {
+            const decodedEmail = req.decoded.email;
             const email = req.query.email;
-            const query = { email: email };
-            const cursor = itemsCollection.find(query);
-            const result = await cursor.toArray();
-            res.send(result)
+            if (decodedEmail === email) {
+                const query = { email: email };
+                const cursor = itemsCollection.find(query);
+                const result = await cursor.toArray();
+                res.send(result)
+            }
+            else {
+                res.status(403).send({ message: 'Forbidden access' });
+            }
 
         });
 
