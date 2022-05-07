@@ -12,6 +12,24 @@ app.use(express.json());
 
 
 
+const verifyToken = (req, res, next) => {
+    const headerAuth = req.headers.authorization;
+    if (!headerAuth) {
+        return res.status(401).send({ message: 'Unauthorized Request' });
+    }
+    const token = headerAuth.split(' ')[1];
+    jwt.verify(token, process.env.ACCESS_TOKEN, (err, decoded) => {
+        if (err) {
+            return res.status(403).send({ message: 'Forbidden access' });
+        }
+        console.log(decoded);
+        req.decoded = decoded;
+        next();
+    })
+
+}
+
+
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.dxcla.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
 
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
@@ -25,9 +43,10 @@ const run = async () => {
 
         app.post('/gettoken', async (req, res) => {
             const user = req.body;
-            console.log(user)
+            const email = user.email;
+            console.log(email);
             const token = jwt.sign(user, process.env.ACCESS_TOKEN, {
-                expiresIn: '1d'
+                expiresIn: '15d'
             });
             res.send(token);
         });
@@ -80,12 +99,13 @@ const run = async () => {
         })
 
         //get my item
-        app.get('/item', async (req, res) => {
+        app.get('/item', verifyToken, async (req, res) => {
             const email = req.query.email;
             const query = { email: email };
             const cursor = itemsCollection.find(query);
             const result = await cursor.toArray();
             res.send(result)
+
         });
 
 
